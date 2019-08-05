@@ -1,6 +1,7 @@
 package sjson
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -50,6 +51,36 @@ const (
     ]
 	}`
 )
+
+func TestStar(t *testing.T) {
+	json := `{
+		"data":	{
+			"a" : {
+				"name" : "v1",
+				"age" : 18,
+				"pass": "abc"
+			},
+			"b" : {
+				"name" : "v2",
+				"age" : 19,
+				"pass": "abc1234"
+			},
+			"c" : {
+				"name" : "v3",
+				"age" : 18,
+				"pass": "defg23423"
+			}
+		}
+	}`
+	fields := []string{
+		"data.*.name",
+	}
+	data, err := getByBytes([]byte(json), fields)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(data))
+}
 
 func TestMapJson(t *testing.T) {
 	json := `[

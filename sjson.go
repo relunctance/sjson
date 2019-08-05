@@ -51,8 +51,7 @@ func getByBytes(json []byte, paths []string) ([]byte, error) {
 		if j.IsCommonPath(path) {
 			j.json.SetP(result.Value(), path)
 		} else {
-			if strings.Index(path, "#") != -1 { // 处理#号情况
-
+			if strings.Index(path, "#") != -1 {
 				err := j.setPath(path, result)
 				if err != nil {
 					return nil, err
