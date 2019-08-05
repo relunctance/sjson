@@ -10,6 +10,7 @@ import (
 
 const (
 	slice_char = "-"
+	prefix     = "__sjson__"
 )
 
 func (j *Json) checkPath(path string) error {

@@ -44,6 +44,12 @@ func (j *Json) IsCommonPath(path string) bool {
 
 func getByBytes(json []byte, paths []string) ([]byte, error) {
 	j := NewJson()
+
+	js, err := gabs.ParseJSONFile("./a.json")
+	if err != nil {
+		panic(err)
+	}
+	js.Path("")
 	for _, path := range paths {
 		result := gjson.GetBytes(json, path)
 		if j.IsCommonPath(path) {

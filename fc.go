@@ -1,6 +1,7 @@
 package sjson
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/tidwall/gjson"
@@ -30,4 +31,18 @@ func InterfaceSliceLength(v interface{}, n int) int {
 		return len(varr)
 	}
 	return InterfaceSliceLength(varr[0], n-1)
+}
+
+func IsPrefixSlice(path string) bool {
+	return path[0] == '#'
+}
+
+func redefinePath(path string) string {
+	return prefix + "." + path
+}
+
+func redefineJson(json []byte) []byte {
+	js := fmt.Sprintf(`{"%s":%s}`, prefix, string(json))
+	return []byte(js)
+
 }
