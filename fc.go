@@ -25,11 +25,11 @@ func IsPrefixSlice(path string) bool {
 }
 
 func redefinePath(path string) string {
-	return prefix + "." + path
+	return PREFIX + "." + path
 }
 
 func redefineJson(json []byte) []byte {
-	js := fmt.Sprintf(`{"%s":%s}`, prefix, string(json))
+	js := fmt.Sprintf(`{"%s":%s}`, PREFIX, string(json))
 	return []byte(js)
 
 }

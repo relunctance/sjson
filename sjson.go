@@ -61,5 +61,5 @@ func getByBytes(json []byte, paths []string) ([]byte, error) {
 		}
 
 	}
-	return j.json.Search(prefix).Bytes(), nil
+	return j.json.Search(PREFIX).Bytes(), nil
 }

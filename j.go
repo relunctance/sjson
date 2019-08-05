@@ -9,23 +9,23 @@ import (
 )
 
 const (
-	slice_char = "-"
-	prefix     = "__sjson__"
+	SLICE_CHAR = "-"
+	PREFIX     = "__sjson__"
 )
 
 func (j *Json) checkPath(path string) error {
 	if path[len(path)-1] == '#' {
 		return fmt.Errorf("path end char can not be '#'")
 	}
-	if strings.Index(path, "-") != -1 {
+	if strings.Index(path, SLICE_CHAR) != -1 {
 		return fmt.Errorf("can not allow key exists '-' , check path:[%s]", path)
 	}
 	return nil
 }
 
 func (j *Json) buildPaths(path string) []string {
-	path = strings.Replace(path, "#", "-", -1)
-	ps := strings.Split(path, "-")
+	path = strings.Replace(path, "#", SLICE_CHAR, -1)
+	ps := strings.Split(path, SLICE_CHAR)
 	for k, p := range ps {
 		ps[k] = strings.Trim(p, ".")
 	}
@@ -39,7 +39,7 @@ func (j *Json) createGabsPath(ps []string) []string {
 	var line string
 	for i, p := range ps {
 		if i < l-1 {
-			line = line + "." + p + "." + slice_char
+			line = line + "." + p + "." + SLICE_CHAR
 		}
 		if i == l-1 {
 			line += "." + p
@@ -52,15 +52,15 @@ func (j *Json) createGabsPath(ps []string) []string {
 }
 
 func (j *Json) initSlice(p string) {
-	sp := strings.TrimRight(strings.TrimRight(p, slice_char), ".")
-	if strings.Index(sp, slice_char) != -1 {
-		panic("should not be exists '-'")
+	sp := strings.TrimRight(strings.TrimRight(p, SLICE_CHAR), ".")
+	if strings.Index(sp, SLICE_CHAR) != -1 {
+		panic(fmt.Errorf("should not be exists '%s'", SLICE_CHAR))
 	}
 	j.json.SetP([]interface{}{}, sp)
 }
 
 func (j *Json) replaceSliceCharToIndex(p string, i int) string {
-	return fmt.Sprintf(strings.Replace(p, slice_char, "%d", -1), i)
+	return fmt.Sprintf(strings.Replace(p, SLICE_CHAR, "%d", -1), i)
 }
 
 func (j *Json) renewPath(p, line string) string {
@@ -129,8 +129,8 @@ func (j *Json) setPath(path string, ret gjson.Result) error {
 	}
 	ps := j.buildPaths(path)
 	for _, p := range ps {
-		n := strings.Count(p, slice_char) - 1
-		if IsEndChar(p, slice_char) {
+		n := strings.Count(p, SLICE_CHAR) - 1
+		if IsEndChar(p, SLICE_CHAR) {
 			num := InterfaceSliceLength(ret.Value(), n)
 			j.buildSlice(p, num)
 		} else {
