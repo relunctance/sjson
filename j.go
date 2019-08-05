@@ -118,7 +118,7 @@ func (j *Json) setSlice(p string, ret gjson.Result) {
 	}
 }
 
-func (j *Json) SetPath(path string, ret gjson.Result) error {
+func (j *Json) setPath(path string, ret gjson.Result) error {
 	if err := j.checkPath(path); err != nil {
 		return err
 	}
