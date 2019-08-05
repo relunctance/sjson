@@ -3,20 +3,7 @@ package sjson
 import (
 	"fmt"
 	"strings"
-
-	"github.com/tidwall/gjson"
 )
-
-func gjsonLength(r gjson.Result) int {
-	v := r.Value()
-	switch val := v.(type) {
-	case []interface{}:
-		return len(val)
-	case map[string]interface{}:
-		return len(val)
-	}
-	return 0
-}
 
 func IsEndChar(v, char string) bool {
 	return strings.LastIndex(v, char) == len(v)-1
