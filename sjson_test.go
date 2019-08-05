@@ -1,10 +1,54 @@
 package sjson
 
 import (
-	"io/ioutil"
 	"testing"
+)
 
-	"github.com/relunctance/goutils/dump"
+const (
+	demojson = `{
+    "name": {"first": "Tom", "last": "Anderson"},
+    "lname": {"first": "Tom1", "last": "Anderson1"},
+    "age":37,
+    "children": ["Sara","Alex","Jack"],
+    "fav.movie": "Deer Hunter",
+    "friends": [
+        {"last": "Murphy"},
+        {"first": "Roger", "last": "Craig","name":"abc"},
+        {"first": "James1", "last": "Murphy"},
+        {
+            "first": "Roger2",
+            "last": "Craig",
+            "name":"abc",
+            "c":[
+
+                {
+                    "kw": {
+                        "signature": [
+                            "c1"
+                        ]
+                    },
+                    "tabname": "tab1"
+               },
+                {
+                    "kw": {
+                        "signature": [
+                            "c2"
+                        ]
+                    },
+                    "tabname": "tab2"
+               },
+                {
+                    "kw": {
+                        "signature": [
+                            "c3"
+                        ]
+                    },
+                    "tabname": "tab3"
+               }
+            ]
+        }
+    ]
+	}`
 )
 
 func TestMapJson(t *testing.T) {
@@ -12,7 +56,9 @@ func TestMapJson(t *testing.T) {
 					{
 						"b1": [
 							{
-								"c": {"gaoqilin":"cde"}
+								"c": {"gql":"cde"},
+								"d": {"gql":"cde"},
+								"e": {"gql":"cde"}
 							}
 						]
 					}, 
@@ -38,7 +84,11 @@ func TestMapJson(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	dump.Println(string(data))
+	expectJson := `[{"b1":[{"c":{"gql":"cde"}}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]`
+	if string(data) != expectJson {
+		t.Fatalf("should be == `%s`", expectJson)
+
+	}
 }
 
 func TestSliceJson(t *testing.T) {
@@ -74,14 +124,15 @@ func TestSliceJson(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	dump.Println(string(data))
+	expectJson := `[{"b1":[{"c":111}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]`
+	if string(data) != expectJson {
+		t.Fatalf("should be == `%s`", expectJson)
+
+	}
 }
 
 func TestMutliJson(t *testing.T) {
-	json, err := ioutil.ReadFile("./a.json")
-	if err != nil {
-		panic(err)
-	}
+	json := []byte(demojson)
 	fields := []string{
 		"name.first",
 		"lname",
@@ -93,22 +144,14 @@ func TestMutliJson(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	dump.Println(string(data))
+	expectJson := `{"age":37,"friends":[{"last":"Murphy"},{"last":"Craig"},{"last":"Murphy"},{"last":"Craig"}],"lname":{"first":"Tom1","last":"Anderson1"},"name":{"first":"Tom"}}`
+	if string(data) != expectJson {
+		t.Fatalf("should be == `%s`", expectJson)
+
+	}
 }
 
 func TestDemo(t *testing.T) {
-	/*
-		json, err := ioutil.ReadFile("./a.json")
-		if err != nil {
-			panic(err)
-		}
-		fields := []string{
-			"name.first",
-			"age",
-			"friends.#.last",
-		}
-	*/
-
 	json := `{
 				"a": [
 					{
@@ -142,5 +185,9 @@ func TestDemo(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	dump.Println(string(data))
+	expectJson := `{"a":[{"b1":[{"c":111}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]}`
+	if string(data) != expectJson {
+		t.Fatalf("should be == `%s`", expectJson)
+
+	}
 }
