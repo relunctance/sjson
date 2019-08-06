@@ -91,6 +91,10 @@ func (j *Json) commonPathGet(path string) error {
 }
 
 func (j *Json) wildcardPathGet(path string) error {
+	if path == "*" {
+		//j.json = gabs.Wrap(j.data)
+		return nil
+	}
 	return nil
 }
 
