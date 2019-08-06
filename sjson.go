@@ -1,8 +1,6 @@
 package sjson
 
 import (
-	//	sj "github.com/guyannanfei25/go-simplejson"
-
 	"strings"
 
 	"github.com/Jeffail/gabs"
@@ -42,23 +40,67 @@ func (j *Json) IsCommonPath(path string) bool {
 
 }
 
+func GetKeys(json []byte, path string) ([]string, error) {
+	j, err := gabs.ParseJSON(json)
+	if err != nil {
+		return nil, err
+	}
+	ms := j.ChildrenMap()
+	ret := make([]string, 0, len(ms))
+	for key, _ := range ms {
+		ret = append(ret, key)
+	}
+	return ret, nil
+
+}
+
+// data.#.a.*.name
+// data.*.name
+// data.*.name.#.c
+
 func getByBytes(json []byte, paths []string) ([]byte, error) {
-	j := NewJson()
-	json = redefineJson(json)
-	for _, p := range paths {
-		path := redefinePath(p)
-		result := gjson.GetBytes(json, path)
-		if j.IsCommonPath(path) {
-			j.json.SetP(result.Value(), path)
+	proc := newProcess(json)
+	for _, path := range paths {
+		if proc.j.IsCommonPath(path) {
+			proc.commonPathGet(path)
 		} else {
 			if strings.Index(path, "#") != -1 {
-				err := j.setPath(path, result)
-				if err != nil {
-					return nil, err
-				}
+				proc.numbersignPathGet(path)
 			}
 		}
-
 	}
-	return j.json.Search(PREFIX).Bytes(), nil
+	return proc.j.json.Search(PREFIX).Bytes(), nil
+}
+
+type process struct {
+	json []byte
+	j    *Json
+}
+
+func newProcess(json []byte) *process {
+	p := &process{}
+	p.json = redefineJson(json)
+	p.j = NewJson()
+	return p
+}
+
+func (p *process) gJsonResult(path string) gjson.Result {
+	return gjson.GetBytes(p.json, path)
+}
+
+func (p *process) commonPathGet(path string) error {
+	path = redefinePath(path)
+	result := p.gJsonResult(path)
+	_, err := p.j.json.SetP(result.Value(), path)
+	return err
+}
+
+func (p *process) wildcardPathGet(path string) error {
+	return nil
+}
+
+func (p *process) numbersignPathGet(path string) error {
+	path = redefinePath(path)
+	result := p.gJsonResult(path)
+	return p.j.setPath(path, result)
 }

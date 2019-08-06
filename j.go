@@ -104,7 +104,7 @@ func (j *Json) getValueWithPath(p, newp string, ret gjson.Result) interface{} {
 	//dump.Printf("pslice:%v , nslice:%v , data:%v\n", pslice, nslice, data)
 	var item gjson.Result
 	for key, path := range pslice {
-		if path != "-" {
+		if path != SLICE_CHAR {
 			continue
 		}
 		k := nslice[key]
