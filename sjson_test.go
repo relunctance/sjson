@@ -69,11 +69,36 @@ func TestStar(t *testing.T) {
 				"name" : "v3",
 				"age" : 18,
 				"pass": "defg23423"
-			}
+			},
+			"d" : [
+				{
+					"name" : "v1",
+					"age" : 18,
+					"pass": "abc",
+					"eee" : {
+						"xx" : {
+							"name":"gql" 
+						}
+					}
+				}
+			]
 		}
 	}`
+	/*
+		{
+			"name" : "v1",
+			"age" : 18,
+			"pass": "abc",
+			"fff" : {
+				"cc" : {
+					"name":"gql"
+				}
+			}
+		}
+	*/
 	fields := []string{
-		"data.*.name",
+		//"data.*.name",
+		"data.d.#.eee.*.name",
 	}
 	data, err := getByBytes([]byte(json), fields)
 	if err != nil {
