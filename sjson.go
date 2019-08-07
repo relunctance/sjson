@@ -61,22 +61,39 @@ func (j *Json) GetKeys(json []byte, path string) ([]string, error) {
 
 }
 
+// * // finish
 // data.#.a.*.name
 // data.*.name
 // data.*.name.#.c
 
 func getByBytes(json []byte, paths []string) ([]byte, error) {
 	j := NewJson(json)
+	if j.checkIsAll(paths) {
+		return json, nil
+	}
 	for _, path := range paths {
 		if j.IsCommonPath(path) {
 			j.commonPathGet(path)
 		} else {
-			if strings.Index(path, "#") != -1 {
+			if j.isAllNumbersign(path) {
 				j.numbersignPathGet(path)
 			}
 		}
 	}
 	return j.json.Search(PREFIX).Bytes(), nil
+}
+
+func (j *Json) isAllNumbersign(path string) bool {
+	return strings.Index(path, "#") != -1 && strings.Index(path, "*") == -1
+}
+
+func (j *Json) checkIsAll(paths []string) bool {
+	for _, p := range paths {
+		if p == "*" {
+			return true
+		}
+	}
+	return false
 }
 
 func (j *Json) gJsonResult(path string) gjson.Result {
@@ -91,10 +108,6 @@ func (j *Json) commonPathGet(path string) error {
 }
 
 func (j *Json) wildcardPathGet(path string) error {
-	if path == "*" {
-		//j.json = gabs.Wrap(j.data)
-		return nil
-	}
 	return nil
 }
 
