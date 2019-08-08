@@ -46,14 +46,6 @@ func NewJson(json []byte) *Json {
 
 }
 
-func (j *Json) Bytes() []byte {
-	return j.data
-}
-
-func (j *Json) String() string {
-	return j.sjdata
-}
-
 func (j *Json) IsCommonPath(path string) bool {
 	if strings.Index(path, "#") != -1 {
 		return false
