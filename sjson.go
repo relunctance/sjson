@@ -9,6 +9,10 @@ import (
 	vsj "github.com/tidwall/sjson"
 )
 
+const (
+	PREFIX = "__sjson__"
+)
+
 type Json struct {
 	json          *gabs.Container
 	data          []byte
@@ -20,10 +24,19 @@ type Json struct {
 	sj            string
 }
 
+func redefinePath(path string) string {
+	return PREFIX + "." + path
+}
+
+func redefineJson(json []byte) []byte {
+	js := fmt.Sprintf(`{"%s":%s}`, PREFIX, string(json))
+	return []byte(js)
+
+}
+
 func NewJson(json []byte) *Json {
 	j := &Json{}
 	j.json = gabs.New()
-
 	j.data = redefineJson(json)
 	j.sjdata = string(j.data)
 	var err error
@@ -70,9 +83,6 @@ func (j *Json) findMapKeys(path string) ([]string, error) {
 
 }
 
-// data.#.a.*.name
-// data.*.name
-// data.*.name.#.c
 func getByBytes(json []byte, paths []string) ([]byte, error) {
 	j := NewJson(json)
 	if j.checkIsAll(paths) {
@@ -84,36 +94,14 @@ func getByBytes(json []byte, paths []string) ([]byte, error) {
 		if j.IsCommonPath(path) {
 			j.pathGabsSet(path)
 			continue
-			//j.commonPathGet(path)
-			//continue
 		}
-		/*
-			if j.isAllNumbersign(path) {
-				j.numbersignPathGet(path)
-				continue
-			}
-		*/
 		j.wildcardPathGet(path)
 	}
 	j.json, _ = gabs.ParseJSON([]byte(j.sj))
 	return j.json.Search(PREFIX).Bytes(), nil
 }
 
-/*
-[
-	"__sjson__.data.d.0.eee",
-	"__sjson__.data.d.1.eee",
-]
-=>
-[
-	"__sjson__.data.d.0.eee.xx",
-	"__sjson__.data.d.0.eee.ff",
-	"__sjson__.data.d.0.eee.gg",
-	"__sjson__.data.d.1.eee.cc",
-]
-*/
-
-func (j *Json) initWildcardPaths(path, c string) (s []string, err error) {
+func (j *Json) buildWildcardPaths(path, c string) (s []string, err error) {
 	path = strings.TrimRight(path, ".")
 	switch c {
 	case "#":
@@ -152,7 +140,7 @@ func (j *Json) wildcardPathGet(path string) (err error) {
 			continue
 		}
 		if len(j.wildcardPaths) == 0 {
-			j.wildcardPaths, err = j.initWildcardPaths(line, p)
+			j.wildcardPaths, err = j.buildWildcardPaths(line, p)
 			if err != nil {
 				return err
 			}
@@ -162,7 +150,7 @@ func (j *Json) wildcardPathGet(path string) (err error) {
 		var newPaths []string
 		newWildcardPs := make([]string, 0, 1)
 		for _, pth := range j.wildcardPaths {
-			newPaths, err = j.initWildcardPaths(pth, p)
+			newPaths, err = j.buildWildcardPaths(pth, p)
 			if err != nil {
 				return err
 			}
@@ -173,8 +161,12 @@ func (j *Json) wildcardPathGet(path string) (err error) {
 	for _, path := range j.wildcardPaths {
 		j.pathGabsSet(path)
 	}
-	j.wildcardPaths = make([]string, 0, 1) // init
+	j.resetWildcardPaths()
 	return nil
+}
+
+func (j *Json) resetWildcardPaths() {
+	j.wildcardPaths = make([]string, 0, 1) // init
 }
 
 func (j *Json) isPathNil(path string) bool {
@@ -194,10 +186,6 @@ func (j *Json) pathGabsSet(path string) {
 	return
 }
 
-func (j *Json) isAllNumbersign(path string) bool {
-	return strings.Index(path, "#") != -1 && strings.Index(path, "*") == -1
-}
-
 func (j *Json) isNotWildcard(char string) bool {
 	switch char {
 	case
@@ -207,6 +195,7 @@ func (j *Json) isNotWildcard(char string) bool {
 	}
 	return true
 }
+
 func (j *Json) checkIsAll(paths []string) bool {
 	for _, p := range paths {
 		if p == "*" {
@@ -214,19 +203,4 @@ func (j *Json) checkIsAll(paths []string) bool {
 		}
 	}
 	return false
-}
-
-func (j *Json) gJsonResult(path string) gjson.Result {
-	return gjson.GetBytes(j.data, path)
-}
-
-func (j *Json) commonPathGet(path string) error {
-	result := j.gJsonResult(path)
-	_, err := j.json.SetP(result.Value(), path)
-	return err
-}
-
-func (j *Json) numbersignPathGet(path string) error {
-	result := j.gJsonResult(path)
-	return j.setPath(path, result)
 }
