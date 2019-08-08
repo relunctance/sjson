@@ -1,7 +1,6 @@
 package sjson
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -51,6 +50,26 @@ const (
     ]
 	}`
 )
+
+func TestMutliJson(t *testing.T) {
+	json := []byte(demojson)
+	fields := []string{
+		"name.first",
+		"lname",
+		"age",
+		"friends.#.last",
+	}
+
+	data, err := getByBytes([]byte(json), fields)
+	if err != nil {
+		panic(err)
+	}
+	expectJson := `{"age":37,"friends":[{"last":"Murphy"},{"last":"Craig"},{"last":"Murphy"},{"last":"Craig"}],"lname":{"first":"Tom1","last":"Anderson1"},"name":{"first":"Tom"}}`
+	if string(data) != expectJson {
+		t.Fatalf("should be == `%s` , but not is `%s`", expectJson, string(data))
+
+	}
+}
 
 func TestStar(t *testing.T) {
 	json := `{
@@ -103,14 +122,17 @@ func TestStar(t *testing.T) {
 	/*
 	 */
 	fields := []string{
-		//"data.*.name",
+		"data.*.name",
 		"data.d.#.eee.*.name",
 	}
 	data, err := getByBytes([]byte(json), fields)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(data))
+	expectJson := `{"data":{"a":{"name":"v1"},"b":{"name":"v2"},"c":{"name":"v3"},"d":[{"eee":{"ff":{"name":"gql"},"gg":{"name":"gql"},"xx":{"name":"gql"}}},{"eee":{"cc":{"name":"gql"}}}]}}`
+	if string(data) != expectJson {
+		t.Fatalf("should be == `%s` but not is `%s`", expectJson, string(data))
+	}
 }
 
 func TestMapJson(t *testing.T) {
@@ -187,26 +209,6 @@ func TestSliceJson(t *testing.T) {
 		panic(err)
 	}
 	expectJson := `[{"b1":[{"c":111}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]`
-	if string(data) != expectJson {
-		t.Fatalf("should be == `%s`", expectJson)
-
-	}
-}
-
-func TestMutliJson(t *testing.T) {
-	json := []byte(demojson)
-	fields := []string{
-		"name.first",
-		"lname",
-		"age",
-		"friends.#.last",
-	}
-
-	data, err := getByBytes([]byte(json), fields)
-	if err != nil {
-		panic(err)
-	}
-	expectJson := `{"age":37,"friends":[{"last":"Murphy"},{"last":"Craig"},{"last":"Murphy"},{"last":"Craig"}],"lname":{"first":"Tom1","last":"Anderson1"},"name":{"first":"Tom"}}`
 	if string(data) != expectJson {
 		t.Fatalf("should be == `%s`", expectJson)
 

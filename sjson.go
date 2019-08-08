@@ -16,6 +16,7 @@ type Json struct {
 	s             []string
 	container     *gabs.Container
 	finishp       string
+	sjdata        string
 	sj            string
 }
 
@@ -24,6 +25,7 @@ func NewJson(json []byte) *Json {
 	j.json = gabs.New()
 
 	j.data = redefineJson(json)
+	j.sjdata = string(j.data)
 	var err error
 	j.container, err = gabs.ParseJSON(j.data)
 	if err != nil {
@@ -78,22 +80,22 @@ func getByBytes(json []byte, paths []string) ([]byte, error) {
 	}
 	for _, path := range paths {
 		path = redefinePath(path)
+
+		if j.IsCommonPath(path) {
+			j.pathGabsSet(path)
+			continue
+			//j.commonPathGet(path)
+			//continue
+		}
 		/*
-			if j.IsCommonPath(path) {
-				j.commonPathGet(path)
-				continue
-			}
 			if j.isAllNumbersign(path) {
 				j.numbersignPathGet(path)
 				continue
 			}
 		*/
-		js, err := j.wildcardPathGet(path)
-		if err != nil {
-			panic(err)
-		}
-		j.json.Merge(js)
+		j.wildcardPathGet(path)
 	}
+	j.json, _ = gabs.ParseJSON([]byte(j.sj))
 	return j.json.Search(PREFIX).Bytes(), nil
 }
 
@@ -135,13 +137,7 @@ func (j *Json) initWildcardPaths(path, c string) (s []string, err error) {
 	return s, nil
 }
 
-func (j *Json) splitWildcard(path string) {
-}
-
-// [1]data.#.a.*.name
-// [2]data.*.name
-// [3]data.*.name.#.c
-func (j *Json) wildcardPathGet(path string) (gabsJson *gabs.Container, err error) {
+func (j *Json) wildcardPathGet(path string) (err error) {
 	ps := strings.Split(path, ".")
 	var line string
 	for _, p := range ps {
@@ -158,7 +154,7 @@ func (j *Json) wildcardPathGet(path string) (gabsJson *gabs.Container, err error
 		if len(j.wildcardPaths) == 0 {
 			j.wildcardPaths, err = j.initWildcardPaths(line, p)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			continue
 		}
@@ -168,7 +164,7 @@ func (j *Json) wildcardPathGet(path string) (gabsJson *gabs.Container, err error
 		for _, pth := range j.wildcardPaths {
 			newPaths, err = j.initWildcardPaths(pth, p)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			newWildcardPs = append(newWildcardPs, newPaths...)
 		}
@@ -177,46 +173,18 @@ func (j *Json) wildcardPathGet(path string) (gabsJson *gabs.Container, err error
 	for _, path := range j.wildcardPaths {
 		j.pathGabsSet(path)
 	}
-	gabsJson, _ = gabs.ParseJSON([]byte(j.sj))
-	return gabsJson, nil
-}
-
-/*
-func (j *Json) wildcardPathGet(path string) (err error) {
-	ps := strings.Split(path, ".")
-	var line string
-	for _, p := range ps {
-		if j.isNotWildcard(p) && len(j.wildcardPaths) == 0 {
-			line += p + "."
-			continue
-		}
-		if len(j.wildcardPaths) == 0 {
-			j.wildcardPaths, err = j.initWildcardPaths(j.data, line, p)
-			if err != nil {
-				return err
-			}
-			continue
-		}
-		if j.isNotWildcard(p) {
-			// 进入到这里  如果是[2] 则p == name
-			// 进入到这里  如果是[3] 则p == name
-			for key, pth := range j.wildcardPaths {
-				j.wildcardPaths[key] = pth + "." + p
-			}
-		} else {
-			for _, pth := range j.wildcardPaths {
-				j.wildcardPaths, err = j.initWildcardPaths(j.data, pth, p)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-	dump.Println("xxxx:", j.wildcardPaths)
+	j.wildcardPaths = make([]string, 0, 1) // init
 	return nil
 }
-*/
+
+func (j *Json) isPathNil(path string) bool {
+	return gjson.Get(j.sjdata, path).Value() == nil
+}
+
 func (j *Json) pathGabsSet(path string) {
+	if j.isPathNil(path) {
+		return
+	}
 	value := j.container.Path(path).Data()
 	var err error
 	j.sj, err = vsj.Set(j.sj, path, value)
