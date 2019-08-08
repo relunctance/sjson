@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/Jeffail/gabs"
-	"github.com/relunctance/goutils/dump"
 	"github.com/tidwall/gjson"
+	vsj "github.com/tidwall/sjson"
 )
 
 type Json struct {
@@ -16,6 +16,7 @@ type Json struct {
 	s             []string
 	container     *gabs.Container
 	finishp       string
+	sj            string
 }
 
 func NewJson(json []byte) *Json {
@@ -28,6 +29,7 @@ func NewJson(json []byte) *Json {
 	if err != nil {
 		panic(err)
 	}
+	j.sj = `{}`
 	j.s = make([]string, 0, 1)
 	j.wildcardPaths = make([]string, 0, 1)
 	return j
@@ -76,44 +78,110 @@ func getByBytes(json []byte, paths []string) ([]byte, error) {
 	}
 	for _, path := range paths {
 		path = redefinePath(path)
-		if j.IsCommonPath(path) {
-			j.commonPathGet(path)
-			continue
+		/*
+			if j.IsCommonPath(path) {
+				j.commonPathGet(path)
+				continue
+			}
+			if j.isAllNumbersign(path) {
+				j.numbersignPathGet(path)
+				continue
+			}
+		*/
+		js, err := j.wildcardPathGet(path)
+		if err != nil {
+			panic(err)
 		}
-		if j.isAllNumbersign(path) {
-			j.numbersignPathGet(path)
-			continue
-		}
-		//j.tmpdata = j.data
-		j.wildcardPathGet(path)
+		j.json.Merge(js)
 	}
 	return j.json.Search(PREFIX).Bytes(), nil
 }
 
-func (j *Json) initWildcardPaths(data []byte, path, c string) (s []string, err error) {
-	s = make([]string, 0, 1)
+/*
+[
+	"__sjson__.data.d.0.eee",
+	"__sjson__.data.d.1.eee",
+]
+=>
+[
+	"__sjson__.data.d.0.eee.xx",
+	"__sjson__.data.d.0.eee.ff",
+	"__sjson__.data.d.0.eee.gg",
+	"__sjson__.data.d.1.eee.cc",
+]
+*/
+
+func (j *Json) initWildcardPaths(path, c string) (s []string, err error) {
 	path = strings.TrimRight(path, ".")
 	switch c {
 	case "#":
-		num := gjson.Get(string(data), path+".#").Int()
-		for i := 0; i < int(num); i++ {
+		num := gjson.Get(string(j.data), path+".#").Int()
+		l := int(num)
+		s = make([]string, 0, l)
+		for i := 0; i < l; i++ {
 			s = append(s, fmt.Sprintf("%s.%d", path, i))
 		}
 	case "*":
 		keys, err := j.findMapKeys(path)
 		if err != nil {
-			return s, err
+			return nil, err
 		}
+		s = make([]string, 0, len(keys))
 		for _, key := range keys {
 			s = append(s, fmt.Sprintf("%s.%s", path, key))
 		}
+
 	}
 	return s, nil
+}
+
+func (j *Json) splitWildcard(path string) {
 }
 
 // [1]data.#.a.*.name
 // [2]data.*.name
 // [3]data.*.name.#.c
+func (j *Json) wildcardPathGet(path string) (gabsJson *gabs.Container, err error) {
+	ps := strings.Split(path, ".")
+	var line string
+	for _, p := range ps {
+		if j.isNotWildcard(p) {
+			if len(j.wildcardPaths) == 0 {
+				line += p + "."
+			} else {
+				for key, pth := range j.wildcardPaths {
+					j.wildcardPaths[key] = pth + "." + p
+				}
+			}
+			continue
+		}
+		if len(j.wildcardPaths) == 0 {
+			j.wildcardPaths, err = j.initWildcardPaths(line, p)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		var newPaths []string
+		newWildcardPs := make([]string, 0, 1)
+		for _, pth := range j.wildcardPaths {
+			newPaths, err = j.initWildcardPaths(pth, p)
+			if err != nil {
+				return nil, err
+			}
+			newWildcardPs = append(newWildcardPs, newPaths...)
+		}
+		j.wildcardPaths = newWildcardPs
+	}
+	for _, path := range j.wildcardPaths {
+		j.pathGabsSet(path)
+	}
+	gabsJson, _ = gabs.ParseJSON([]byte(j.sj))
+	return gabsJson, nil
+}
+
+/*
 func (j *Json) wildcardPathGet(path string) (err error) {
 	ps := strings.Split(path, ".")
 	var line string
@@ -146,6 +214,16 @@ func (j *Json) wildcardPathGet(path string) (err error) {
 	}
 	dump.Println("xxxx:", j.wildcardPaths)
 	return nil
+}
+*/
+func (j *Json) pathGabsSet(path string) {
+	value := j.container.Path(path).Data()
+	var err error
+	j.sj, err = vsj.Set(j.sj, path, value)
+	if err != nil {
+		panic(err)
+	}
+	return
 }
 
 func (j *Json) isAllNumbersign(path string) bool {

@@ -33,3 +33,11 @@ func redefineJson(json []byte) []byte {
 	return []byte(js)
 
 }
+
+func copySlice(arr, arr2 []string) []string {
+	if len(arr2) > len(arr) {
+		return arr2
+	}
+	copy(arr, arr2)
+	return arr
+}

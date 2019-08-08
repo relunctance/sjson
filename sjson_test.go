@@ -78,6 +78,22 @@ func TestStar(t *testing.T) {
 					"eee" : {
 						"xx" : {
 							"name":"gql" 
+						},
+						"ff" : {
+							"name":"gql" 
+						},
+						"gg" : {
+							"name":"gql" 
+						}
+					}
+				},
+				{
+					"name" : "v2",
+					"age" : 19,
+					"pass": "def",
+					"eee" : {
+						"cc" : {
+							"name":"gql"
 						}
 					}
 				}
@@ -85,17 +101,7 @@ func TestStar(t *testing.T) {
 		}
 	}`
 	/*
-		{
-			"name" : "v1",
-			"age" : 18,
-			"pass": "abc",
-			"fff" : {
-				"cc" : {
-					"name":"gql"
-				}
-			}
-		}
-	*/
+	 */
 	fields := []string{
 		//"data.*.name",
 		"data.d.#.eee.*.name",
