@@ -14,12 +14,9 @@ const (
 )
 
 type Json struct {
-	json          *gabs.Container
 	data          []byte
 	wildcardPaths []string
-	s             []string
 	container     *gabs.Container
-	finishp       string
 	sjdata        string
 	sj            string
 }
@@ -36,7 +33,6 @@ func redefineJson(json []byte) []byte {
 
 func NewJson(json []byte) *Json {
 	j := &Json{}
-	j.json = gabs.New()
 	j.data = redefineJson(json)
 	j.sjdata = string(j.data)
 	var err error
@@ -45,18 +41,17 @@ func NewJson(json []byte) *Json {
 		panic(err)
 	}
 	j.sj = `{}`
-	j.s = make([]string, 0, 1)
 	j.wildcardPaths = make([]string, 0, 1)
 	return j
 
 }
 
 func (j *Json) Bytes() []byte {
-	return j.json.Bytes()
+	return j.data
 }
 
 func (j *Json) String() string {
-	return j.json.String()
+	return j.sjdata
 }
 
 func (j *Json) IsCommonPath(path string) bool {
@@ -90,15 +85,14 @@ func getByBytes(json []byte, paths []string) ([]byte, error) {
 	}
 	for _, path := range paths {
 		path = redefinePath(path)
-
 		if j.IsCommonPath(path) {
 			j.pathGabsSet(path)
 			continue
 		}
 		j.wildcardPathGet(path)
 	}
-	j.json, _ = gabs.ParseJSON([]byte(j.sj))
-	return j.json.Search(PREFIX).Bytes(), nil
+	gjson, _ := gabs.ParseJSON([]byte(j.sj))
+	return gjson.Search(PREFIX).Bytes(), nil
 }
 
 func (j *Json) buildWildcardPaths(path, c string) (s []string, err error) {
