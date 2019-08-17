@@ -31,7 +31,7 @@ func redefineJson(json []byte) []byte {
 
 }
 
-func NewJson(json []byte) *Json {
+func newJson(json []byte) *Json {
 	j := &Json{}
 	j.data = redefineJson(json)
 	j.sjdata = string(j.data)
@@ -46,6 +46,9 @@ func NewJson(json []byte) *Json {
 
 }
 
+// check path is contain '#' or '*'
+// the '#' is used in path that expression [{item1} , {item2} , {itemN...} ] which index of "0,1,2 ..."
+// the '*' is used in path that expression {"name1":{item1} , "name2":{item2}  , "nameN":{itemN}} which index of "name1,name2,nameN..."
 func (j *Json) IsCommonPath(path string) bool {
 	if strings.Index(path, "#") != -1 {
 		return false
@@ -71,10 +74,11 @@ func (j *Json) findMapKeys(path string) ([]string, error) {
 }
 
 func getByBytes(json []byte, paths []string) ([]byte, error) {
-	j := NewJson(json)
+	j := newJson(json)
 	if j.checkIsAll(paths) {
 		return json, nil
 	}
+	//
 	for _, path := range paths {
 		path = redefinePath(path)
 		if j.IsCommonPath(path) {
@@ -151,14 +155,17 @@ func (j *Json) wildcardPathGet(path string) (err error) {
 	return nil
 }
 
+// init wildcardPaths to used next path
 func (j *Json) resetWildcardPaths() {
 	j.wildcardPaths = make([]string, 0, 1) // init
 }
 
+// check get path value is empty
 func (j *Json) isPathNil(path string) bool {
 	return gjson.Get(j.sjdata, path).Value() == nil
 }
 
+//
 func (j *Json) pathGabsSet(path string) {
 	if j.isPathNil(path) {
 		return
@@ -172,6 +179,7 @@ func (j *Json) pathGabsSet(path string) {
 	return
 }
 
+// check split char is '#' and '*'
 func (j *Json) isNotWildcard(char string) bool {
 	switch char {
 	case
@@ -182,6 +190,11 @@ func (j *Json) isNotWildcard(char string) bool {
 	return true
 }
 
+// if you input a slice path and one value is '*' then return origin json
+// that is mean the path should be exists field
+// the all data return example  :
+//  ["*"]
+//  ["path1","*","path2"]
 func (j *Json) checkIsAll(paths []string) bool {
 	for _, p := range paths {
 		if p == "*" {
