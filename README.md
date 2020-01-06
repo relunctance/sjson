@@ -1,7 +1,7 @@
 # SJSON
 Go json select with field
-* Precise API field control
-* Authority control
+* Sjson can used Precise API field control
+* Sjson can used Authority control
 
 
 
