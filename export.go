@@ -10,6 +10,10 @@ func SelectPath(json string, path string) (string, error) {
 
 func SelectBytes(json []byte, paths []string) ([]byte, error) {
 	return getByBytes(json, paths)
+}
+
+func SelectBytesPath(json []byte, path string) ([]byte, error) {
+	return getByBytes(json, []string{path})
 
 }
 
