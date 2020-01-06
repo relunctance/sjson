@@ -120,9 +120,7 @@ const (
     ]
 	}`
 )
-```
 
-```go
 	json := []byte(demojson)
 	fields := []string{
 		"name.first",
