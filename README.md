@@ -120,9 +120,9 @@ const (
     ]
 	}`
 )
+```
 
 ```go
-func TestMutliJson(t *testing.T) {
 	json := []byte(demojson)
 	fields := []string{
 		"name.first",
@@ -131,9 +131,8 @@ func TestMutliJson(t *testing.T) {
 		"friends.#.last",
 	}
 
-	data, _ := SelectBytes([]byte(json), fields)
+	data, _ := sjson.SelectBytes([]byte(json), fields)
 	//data = `{"age":37,"friends":[{"last":"Murphy"},{"last":"Craig"},{"last":"Murphy"},{"last":"Craig"}],"lname":{"first":"Tom1","last":"Anderson1"},"name":{"first":"Tom"}}`
-}
 ```
 
 ```go
@@ -188,9 +187,8 @@ func TestMutliJson(t *testing.T) {
 		"data.*.name",
 		"data.d.#.eee.*.name",
 	}
-	data, _ := SelectBytes([]byte(json), fields)
+	data, _ := sjson.SelectBytes([]byte(json), fields)
 	//data = `{"data":{"a":{"name":"v1"},"b":{"name":"v2"},"c":{"name":"v3"},"d":[{"eee":{"ff":{"name":"gql"},"gg":{"name":"gql"},"xx":{"name":"gql"}}},{"eee":{"cc":{"name":"gql"}}}]}}`
-}
 ```
 
 ```go
@@ -222,9 +220,8 @@ func TestMutliJson(t *testing.T) {
 	fields := []string{
 		"#.b1.#.c",
 	}
-	data, _ := SelectBytes([]byte(json), fields)
-	data = `[{"b1":[{"c":{"gql":"cde"}}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]`
-}
+	data, _ := sjson.SelectBytes([]byte(json), fields)
+	//data = `[{"b1":[{"c":{"gql":"cde"}}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]`
 
 ```
 
@@ -255,9 +252,8 @@ func TestMutliJson(t *testing.T) {
 	fields := []string{
 		"#.b1.#.c",
 	}
-	data, _ := SelectBytes([]byte(json), fields)
+	data, _ := sjson.SelectBytes([]byte(json), fields)
 	//data = `[{"b1":[{"c":111}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]`
-}
 
 ```
 
@@ -291,9 +287,8 @@ func TestMutliJson(t *testing.T) {
 		"a.#.b1.#.c",
 	}
 
-	data, _ := SelectBytes([]byte(json), fields)
+	data, _ := sjson.SelectBytes([]byte(json), fields)
 	// `{"a":[{"b1":[{"c":111}]},{"b1":[{"c":222}]},{"b1":[{"c":333}]}]}`
-}
 ```
 
 
