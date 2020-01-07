@@ -2,6 +2,8 @@
 Go json select with field
 * Sjson can used Precise API field control
 * Sjson can used Authority control
+* If you want filter json by custom , You can visit [djson](https://github.com/relunctance/djson)
+
 
 
 
