@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Jeffail/gabs"
+	"github.com/Jeffail/gabs/v2" // support go module
 	"github.com/tidwall/gjson"
 	vsj "github.com/tidwall/sjson"
 )
