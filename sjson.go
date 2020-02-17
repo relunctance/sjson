@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	// "github.com/Jeffail/gabs" // default import
-	"github.com/Jeffail/gabs/v2" // support go module when go version > go.11 and has open GO111MODULE="on"
+	"github.com/Jeffail/gabs/v2" // support go module when go version >= go.11 and has open GO111MODULE="on"
 	"github.com/tidwall/gjson"
 	vsj "github.com/tidwall/sjson"
 )
