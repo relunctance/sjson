@@ -47,6 +47,61 @@ func newJson(json []byte) *Json {
 
 }
 
+func (j *Json) addPrefix(path string) string {
+	return PREFIX + "." + path
+}
+
+func (j *Json) IsArray(path string) bool {
+	_, ok := j.pathData(path).([]interface{})
+	return ok
+}
+
+func (j *Json) IsObject(path string) bool {
+	_, ok := j.pathData(path).(map[string]interface{})
+	return ok
+}
+
+func (j *Json) pathData(path string) interface{} {
+	return j.container.Path(j.addPrefix(path)).Data()
+}
+
+func (j *Json) IsString(path string) bool {
+	v := j.pathData(path)
+	_, ok := v.(string)
+	return ok
+}
+
+func (j *Json) IsFloat(path string) bool {
+	v := j.pathData(path)
+	_, ok := v.(float64)
+	return ok
+
+}
+
+func (j *Json) IsNumber(path string) bool {
+	v := j.pathData(path)
+	_, ok := v.(float64)
+	return ok
+}
+
+func (j *Json) IsScalar(path string) bool {
+	if j.IsArray(path) || j.IsObject(path) {
+		return false
+	}
+	return true
+}
+
+func (j *Json) IsBool(path string) bool {
+	v := j.pathData(path)
+	_, ok := v.(bool)
+	return ok
+}
+
+// func (j *Json) GetPaths(path string) []string {
+// ps := make([]string, 0, 10)
+// return ps
+// }
+
 // check path is contain '#' or '*'
 // the '#' is used in path that expression [{item1} , {item2} , {itemN...} ] which index of "0,1,2 ..."
 // the '*' is used in path that expression {"name1":{item1} , "name2":{item2}  , "nameN":{itemN}} which index of "name1,name2,nameN..."

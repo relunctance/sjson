@@ -6,6 +6,7 @@ import (
 
 const (
 	demojson = `{
+	"ccc":false,
     "name": {"first": "Tom", "last": "Anderson"},
     "lname": {"first": "Tom1", "last": "Anderson1"},
     "age":37,
@@ -51,6 +52,34 @@ const (
 	}`
 )
 
+func TestGetPaths(t *testing.T) {
+	j := newJson([]byte(demojson))
+	if !j.IsObject("name") {
+		t.Fatalf("should be true")
+	}
+	if ok := j.IsArray("children"); ok != true {
+		t.Fatalf("should be true")
+	}
+
+	// not exists key 'childrenxxxxxx'
+	if ok := j.IsArray("childrenxxxxxx"); ok != false {
+		t.Fatalf("should be false")
+	}
+	if ok := j.IsObject("children"); ok != false {
+		t.Fatalf("should be false")
+	}
+
+	if ok := j.IsString("name.first"); ok != true {
+		t.Fatalf("should be false")
+	}
+	if ok := j.IsNumber("age"); ok != true {
+		t.Fatalf("should be true")
+	}
+	if !j.IsBool("ccc") {
+		t.Fatalf("should be true")
+
+	}
+}
 func TestMutliJson(t *testing.T) {
 	json := []byte(demojson)
 	fields := []string{
