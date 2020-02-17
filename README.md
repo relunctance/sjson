@@ -284,3 +284,5 @@ Thanks
 ----------
 
 [github.com/Jeffail/gabs](https://github.com/Jeffail/gabs)
+[github.com/tidwall/gjson](https://github.com/tidwall/gjson)
+[github.com/tidwall/sjson](https://github.com/tidwall/sjson)
